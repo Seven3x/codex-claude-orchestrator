@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cco-claude-session-end-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-claude-orchestrator"
+version = "0.1.0"
+description = "Token-saving Codex + Claude Code orchestrator (Python SDK version)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+authors = [
+  {name = "OpenAI ChatGPT scaffold"}
+]
+
+[project.scripts]
+cco = "codex_claude_orchestrator.cli:main"
+cco-claude-session-end-hook = "codex_claude_orchestrator.hook:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["codex_claude_orchestrator*"]

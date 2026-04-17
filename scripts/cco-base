@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v cco >/dev/null 2>&1; then
+  exec cco "$@"
+fi
+
+find_conda_sh() {
+  local candidate
+  for candidate in \
+    "${CONDA_EXE:-}" \
+    "${MAMBA_EXE:-}" \
+    "$HOME/miniconda3/bin/conda" \
+    "$HOME/anaconda3/bin/conda" \
+    "/opt/conda/bin/conda" \
+    "/usr/local/miniconda3/bin/conda"
+  do
+    if [[ -n "${candidate}" && -x "${candidate}" ]]; then
+      local root
+      root="$(cd "$(dirname "${candidate}")/.." && pwd)"
+      if [[ -f "${root}/etc/profile.d/conda.sh" ]]; then
+        printf '%s\n' "${root}/etc/profile.d/conda.sh"
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+CONDA_SH="$(find_conda_sh || true)"
+if [[ -z "${CONDA_SH}" ]]; then
+  echo "Could not find conda.sh. Set CONDA_EXE or activate the environment before running scripts/cco-base." >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+source "${CONDA_SH}"
+conda activate base >/dev/null 2>&1
+exec cco "$@"

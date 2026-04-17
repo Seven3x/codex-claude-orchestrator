@@ -1,0 +1,26 @@
+{
+  "job_id": "20260417T061001Z-search",
+  "kind": "search",
+  "task": "echo started and exit quickly",
+  "cwd": "/home/roxy/codex_claude_orchestrator_sdk",
+  "job_dir": "/home/roxy/codex_claude_orchestrator_sdk/.cco/jobs/20260417T061001Z-search",
+  "claude_session_name": "ccw/codex_claude_orchestrator_sdk/20260417T061001Z-search/search",
+  "claude_session_id": "",
+  "claude_pid": 14,
+  "codex_thread_id": "test-thread",
+  "status": "running",
+  "paths": [
+    "README.md"
+  ],
+  "checks": [
+    "true"
+  ],
+  "prompt_path": "/home/roxy/codex_claude_orchestrator_sdk/.cco/jobs/20260417T061001Z-search/worker_prompt.txt",
+  "worker_result_path": "/home/roxy/codex_claude_orchestrator_sdk/.cco/jobs/20260417T061001Z-search/worker_result.json",
+  "codex_resume_prompt_path": "/home/roxy/codex_claude_orchestrator_sdk/.cco/jobs/20260417T061001Z-search/codex_resume_prompt.txt",
+  "codex_resume_response_path": "/home/roxy/codex_claude_orchestrator_sdk/.cco/jobs/20260417T061001Z-search/codex_resume_response.txt",
+  "notes": {
+    "route_reason": "bounded local worker task",
+    "no_codex_resume": true
+  }
+}
