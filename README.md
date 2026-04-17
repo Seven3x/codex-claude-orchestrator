@@ -50,7 +50,7 @@ This follows OpenAI's split between:
 pip install -e .
 ```
 
-If `cco` lives in your conda `base` environment and you do not want to hardcode the Miniconda path every time, use the repo-local wrapper:
+If `cco` lives in your conda `base` environment and you do not want to hardcode the Miniconda path every time, use the wrapper script in this repo:
 
 ```bash
 ./scripts/cco-base --help
@@ -80,17 +80,22 @@ Copy:
 
 - `examples/.claude/settings.json`
 - `examples/CLAUDE.md`
+- `scripts/cco-base`
 
 into your target repository:
 
 ```bash
 mkdir -p .claude
+mkdir -p scripts
 cp examples/.claude/settings.json .claude/settings.json
 cp examples/CLAUDE.md CLAUDE.md
+cp scripts/cco-base scripts/cco-base
 ```
 
 ### 5) (Optional) Add Codex routing instructions
 Copy `examples/AGENTS.md` into your repo root if you want Codex to delegate by rule.
+
+The important detail is that the target repository should also contain `scripts/cco-base`, otherwise `./scripts/cco-base ...` will fail when Codex runs from that repository instead of from the orchestrator repo.
 
 ## Quickstart
 

@@ -38,7 +38,9 @@ Before dispatch:
 - do not repeat rules already stored in CLAUDE.md
 
 ## Dispatch command template
-Use the repo-local wrapper so you do not need to hardcode the Miniconda path.
+Use `./scripts/cco-base` only if that file exists in the current repository.
+If the current repository does not have it, use the orchestrator repo path instead.
+Example fallback: `../codex_claude_orchestrator_sdk/scripts/cco-base dispatch ...`
 
 ./scripts/cco-base dispatch \
   --kind <search|edit|debug|run> \
