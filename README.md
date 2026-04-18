@@ -42,6 +42,7 @@ This follows OpenAI's split between:
 5. Claude exits.
 6. Claude's `SessionEnd` hook posts to the local orchestrator.
 7. The orchestrator resumes the Codex thread with a **short** prompt only if the job still needs Codex review.
+8. The orchestrator also writes active worker state transitions to `.cco/jobs/<job_id>/cco_monitor.log`.
 
 ## Host-service mode
 
@@ -57,6 +58,11 @@ The built-in server now exposes:
 - `GET /health`
 - `POST /dispatch`
 - `POST /claude-session-end`
+
+Each job directory now includes:
+- `meta.json` for the latest persisted job state
+- `worker_result.json` for the worker's final JSON output
+- `cco_monitor.log` for service-side worker lifecycle monitoring
 
 ## Install
 
@@ -143,6 +149,34 @@ The `/dispatch` API intentionally accepts only the small worker-planning fields 
 - `checks`
 - `codex_thread_id`
 - optional `no_codex_resume`, `requires_web`, `force`
+
+## MCP tool wrapper
+
+This package also ships a small stdio MCP server:
+
+```bash
+cco-mcp
+```
+
+It exposes thin tools that forward to the host-side `cco` service:
+- `cco_health`
+- `cco_dispatch`
+- `cco_job_status`
+
+`cco_dispatch` accepts the same minimal planning fields:
+- `repo_root`
+- `kind`
+- `task`
+- `paths`
+- `checks`
+- `codex_thread_id`
+- optional `no_codex_resume`, `requires_web`, `force`, `server_url`
+
+`cco_job_status` reads a job directory directly and returns:
+- `meta`
+- `worker_result`
+- recent `cco_monitor.log` lines
+- recent Claude stdout/stderr tails
 
 ### Start a Codex thread (SDK)
 ```bash

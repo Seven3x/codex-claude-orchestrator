@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Token-saving Codex + Claude Code orchestrator (Python SDK version)"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["mcp>=1.0.0"]
 authors = [
   {name = "OpenAI ChatGPT scaffold"}
 ]
@@ -16,6 +16,7 @@ authors = [
 [project.scripts]
 cco = "codex_claude_orchestrator.cli:main"
 cco-claude-session-end-hook = "codex_claude_orchestrator.hook:main"
+cco-mcp = "codex_claude_orchestrator.mcp_server:main"
 
 [tool.setuptools]
 include-package-data = true

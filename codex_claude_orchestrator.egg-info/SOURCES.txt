@@ -7,6 +7,7 @@ codex_claude_orchestrator/codex_client.py
 codex_claude_orchestrator/config.py
 codex_claude_orchestrator/dispatch.py
 codex_claude_orchestrator/hook.py
+codex_claude_orchestrator/mcp_server.py
 codex_claude_orchestrator/models.py
 codex_claude_orchestrator/prompts.py
 codex_claude_orchestrator/registry.py
@@ -17,4 +18,5 @@ codex_claude_orchestrator.egg-info/PKG-INFO
 codex_claude_orchestrator.egg-info/SOURCES.txt
 codex_claude_orchestrator.egg-info/dependency_links.txt
 codex_claude_orchestrator.egg-info/entry_points.txt
+codex_claude_orchestrator.egg-info/requires.txt
 codex_claude_orchestrator.egg-info/top_level.txt

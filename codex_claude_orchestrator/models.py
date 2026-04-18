@@ -24,6 +24,7 @@ class JobRecord:
     claude_stdout_path: str = ""
     claude_stderr_path: str = ""
     claude_runtime_dir: str = ""
+    monitor_log_path: str = ""
     codex_resume_prompt_path: str = ""
     codex_resume_response_path: str = ""
     notes: dict[str, Any] = field(default_factory=dict)

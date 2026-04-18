@@ -1,3 +1,4 @@
 [console_scripts]
 cco = codex_claude_orchestrator.cli:main
 cco-claude-session-end-hook = codex_claude_orchestrator.hook:main
+cco-mcp = codex_claude_orchestrator.mcp_server:main

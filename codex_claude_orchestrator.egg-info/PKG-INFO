@@ -5,6 +5,7 @@ Summary: Token-saving Codex + Claude Code orchestrator (Python SDK version)
 Author: OpenAI ChatGPT scaffold
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+Requires-Dist: mcp>=1.0.0
 
 # Codex + Claude Code Orchestrator (Python SDK version)
 
