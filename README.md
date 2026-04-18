@@ -1,5 +1,7 @@
 # Codex + Claude Code Orchestrator (Python SDK version)
 
+For Chinese documentation, see [README.zh-CN.md](README.zh-CN.md).
+
 This scaffold is optimized for one goal: **save Codex usage by letting Claude Code handle bounded local work and long waits, then resume Codex only when needed.**
 
 It uses:
@@ -63,6 +65,8 @@ Each job directory now includes:
 - `meta.json` for the latest persisted job state
 - `worker_result.json` for the worker's final JSON output
 - `cco_monitor.log` for service-side worker lifecycle monitoring
+- `claude_output.log` for the full combined Claude worker output
+- `claude_stdout.log` / `claude_stderr.log` for split streams when you need them
 
 ## Install
 
@@ -176,6 +180,7 @@ It exposes thin tools that forward to the host-side `cco` service:
 - `meta`
 - `worker_result`
 - recent `cco_monitor.log` lines
+- recent `claude_output.log` lines
 - recent Claude stdout/stderr tails
 
 ### Start a Codex thread (SDK)
