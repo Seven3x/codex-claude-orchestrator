@@ -4,7 +4,7 @@ import datetime as dt
 import json
 from pathlib import Path
 
-from .claude_client import launch_claude
+from .claude_client import ClaudeLaunchError, launch_claude
 from .config import OrchestratorConfig
 from .models import JobRecord
 from .prompts import build_claude_worker_prompt
@@ -49,6 +49,7 @@ def dispatch_job(
     result_path = job_dir / "worker_result.json"
     claude_stdout_path = job_dir / "claude_stdout.log"
     claude_stderr_path = job_dir / "claude_stderr.log"
+    claude_runtime_dir = config.runtime_root / job_id
     prompt_path = job_dir / "worker_prompt.txt"
     meta_path = job_dir / "meta.json"
     resume_prompt_path = job_dir / "codex_resume_prompt.txt"
@@ -82,6 +83,7 @@ def dispatch_job(
         worker_result_path=str(result_path),
         claude_stdout_path=str(claude_stdout_path),
         claude_stderr_path=str(claude_stderr_path),
+        claude_runtime_dir=str(claude_runtime_dir),
         codex_resume_prompt_path=str(resume_prompt_path),
         codex_resume_response_path=str(resume_response_path),
         notes={
@@ -92,7 +94,22 @@ def dispatch_job(
     registry.upsert(record)
     meta_path.write_text(json.dumps(record.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
 
-    claude_pid = launch_claude(config=config, record=record, prompt=prompt)
+    try:
+        claude_pid = launch_claude(config=config, record=record, prompt=prompt)
+    except ClaudeLaunchError as exc:
+        record.status = "worker_start_failed"
+        record.notes["start_failure"] = str(exc)
+        registry.upsert(record)
+        meta_path.write_text(json.dumps(record.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        return {
+            "dispatched": False,
+            "job_id": job_id,
+            "job_dir": str(job_dir),
+            "reason": str(exc),
+            "send_back_to": "codex",
+            "claude_started": False,
+        }
+
     record.claude_pid = claude_pid
     registry.upsert(record)
     meta_path.write_text(json.dumps(record.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")

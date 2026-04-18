@@ -75,6 +75,8 @@ You can also point the SDK at a specific local `codex` binary with `AppServerCon
 ### 3) Install / configure Claude Code CLI
 Make sure `claude` is on PATH and authenticated.
 
+By default this scaffold launches Claude workers with `--dangerously-skip-permissions` so bounded local worker tasks do not stall on Claude's own interactive file-write prompts. Set `CCO_CLAUDE_SKIP_PERMISSIONS=0` if you want to restore Claude's normal per-action confirmation behavior.
+
 ### 4) Add the Claude hook config
 Copy:
 
@@ -131,6 +133,7 @@ For pure execution tasks where Codex does not need to review the result, add:
 
 ### What happens next
 - `cco dispatch` returns immediately with `claude_pid` once the worker starts.
+- If Claude cannot reach its configured API base or exits immediately during startup, `cco dispatch` now fails fast instead of leaving a fake `running` job behind.
 - Once `cco dispatch` reports `claude_started: true`, Codex should stop and should not poll job files, `/tmp`, logs, or process state in the same session unless the user explicitly asked for monitoring.
 - Claude runs the worker task.
 - At session end, the hook calls `http://127.0.0.1:8765/claude-session-end`.

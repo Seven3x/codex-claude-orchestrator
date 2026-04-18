@@ -41,6 +41,7 @@ Before dispatch:
 Use `./scripts/cco-base` only if that file exists in the current repository.
 If the current repository does not have it, use the orchestrator repo path instead.
 Example fallback: `../codex_claude_orchestrator_sdk/scripts/cco-base dispatch ...`
+Claude workers launched by this scaffold already skip Claude's interactive permission prompts by default; do not stop to wait for file-write confirmation unless `CCO_CLAUDE_SKIP_PERMISSIONS=0` was explicitly set.
 
 ./scripts/cco-base dispatch \
   --kind <search|edit|debug|run> \

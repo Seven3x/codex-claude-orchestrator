@@ -58,7 +58,7 @@ This follows OpenAI's split between:
 pip install -e .
 ```
 
-If `cco` lives in your conda `base` environment and you do not want to hardcode the Miniconda path every time, use the repo-local wrapper:
+If `cco` lives in your conda `base` environment and you do not want to hardcode the Miniconda path every time, use the wrapper script in this repo:
 
 ```bash
 ./scripts/cco-base --help
@@ -83,22 +83,29 @@ You can also point the SDK at a specific local `codex` binary with `AppServerCon
 ### 3) Install / configure Claude Code CLI
 Make sure `claude` is on PATH and authenticated.
 
+By default this scaffold launches Claude workers with `--dangerously-skip-permissions` so bounded local worker tasks do not stall on Claude's own interactive file-write prompts. Set `CCO_CLAUDE_SKIP_PERMISSIONS=0` if you want to restore Claude's normal per-action confirmation behavior.
+
 ### 4) Add the Claude hook config
 Copy:
 
 - `examples/.claude/settings.json`
 - `examples/CLAUDE.md`
+- `scripts/cco-base`
 
 into your target repository:
 
 ```bash
 mkdir -p .claude
+mkdir -p scripts
 cp examples/.claude/settings.json .claude/settings.json
 cp examples/CLAUDE.md CLAUDE.md
+cp scripts/cco-base scripts/cco-base
 ```
 
 ### 5) (Optional) Add Codex routing instructions
 Copy `examples/AGENTS.md` into your repo root if you want Codex to delegate by rule.
+
+The important detail is that the target repository should also contain `scripts/cco-base`, otherwise `./scripts/cco-base ...` will fail when Codex runs from that repository instead of from the orchestrator repo.
 
 ## Quickstart
 
