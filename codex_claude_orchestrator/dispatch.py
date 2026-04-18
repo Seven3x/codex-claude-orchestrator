@@ -95,7 +95,7 @@ def dispatch_job(
     meta_path.write_text(json.dumps(record.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
 
     try:
-        claude_pid = launch_claude(config=config, record=record, prompt=prompt)
+        launch = launch_claude(config=config, record=record, prompt=prompt)
     except ClaudeLaunchError as exc:
         record.status = "worker_start_failed"
         record.notes["start_failure"] = str(exc)
@@ -110,7 +110,10 @@ def dispatch_job(
             "claude_started": False,
         }
 
-    record.claude_pid = claude_pid
+    record.claude_pid = launch.pid
+    record.notes["claude_launcher"] = launch.launcher
+    if launch.systemd_unit:
+        record.notes["claude_systemd_unit"] = launch.systemd_unit
     registry.upsert(record)
     meta_path.write_text(json.dumps(record.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -118,8 +121,10 @@ def dispatch_job(
         "dispatched": True,
         "job_id": job_id,
         "claude_session_name": session_name,
-        "claude_pid": claude_pid,
-        "claude_started": claude_pid > 0,
+        "claude_pid": launch.pid,
+        "claude_started": launch.started,
+        "claude_launcher": launch.launcher,
+        "claude_systemd_unit": launch.systemd_unit,
         "job_dir": str(job_dir),
         "reason": decision.reason,
         "codex_thread_id": codex_thread_id,

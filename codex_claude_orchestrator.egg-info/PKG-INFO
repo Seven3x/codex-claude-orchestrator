@@ -51,6 +51,21 @@ This follows OpenAI's split between:
 6. Claude's `SessionEnd` hook posts to the local orchestrator.
 7. The orchestrator resumes the Codex thread with a **short** prompt only if the job still needs Codex review.
 
+## Host-service mode
+
+The cleanest deployment is to keep `cco server` running on the host as a small local service and let Codex send only minimal dispatch payloads to it.
+
+In that mode:
+- Codex sends `task`, `kind`, `paths`, `checks`, and `codex_thread_id`
+- the host-side `cco` service launches Claude using the host environment
+- the service owns job state, logs, runtime directories, and hook callbacks
+- only a short worker summary needs to come back to Codex
+
+The built-in server now exposes:
+- `GET /health`
+- `POST /dispatch`
+- `POST /claude-session-end`
+
 ## Install
 
 ### 1) Install this scaffold
@@ -84,6 +99,7 @@ You can also point the SDK at a specific local `codex` binary with `AppServerCon
 Make sure `claude` is on PATH and authenticated.
 
 By default this scaffold launches Claude workers with `--dangerously-skip-permissions` so bounded local worker tasks do not stall on Claude's own interactive file-write prompts. Set `CCO_CLAUDE_SKIP_PERMISSIONS=0` if you want to restore Claude's normal per-action confirmation behavior.
+By default this scaffold also prefers launching Claude through host `systemd-run --user` (`CCO_CLAUDE_LAUNCHER=auto`) so the worker does not inherit a restricted Codex sandbox as a child process. Set `CCO_CLAUDE_LAUNCHER=subprocess` if you explicitly want the old direct-child behavior.
 
 ### 4) Add the Claude hook config
 Copy:
@@ -114,6 +130,28 @@ The important detail is that the target repository should also contain `scripts/
 ./scripts/cco-base server --host 127.0.0.1 --port 8765
 ```
 
+### Dispatch through the host service
+```bash
+curl -s -X POST http://127.0.0.1:8765/dispatch \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "kind": "search",
+    "task": "List README filenames in this repository and write the required result JSON.",
+    "paths": ["."],
+    "checks": ["rg --files -g '\''README*'\''"],
+    "codex_thread_id": "",
+    "no_codex_resume": true
+  }'
+```
+
+The `/dispatch` API intentionally accepts only the small worker-planning fields instead of a full repo summary:
+- `kind`
+- `task`
+- `paths`
+- `checks`
+- `codex_thread_id`
+- optional `no_codex_resume`, `requires_web`, `force`
+
 ### Start a Codex thread (SDK)
 ```bash
 ./scripts/cco-base codex-start \
@@ -133,6 +171,8 @@ This prints JSON including the thread id.
   --codex-thread-id YOUR_THREAD_ID
 ```
 
+If you are issuing `cco dispatch` from a Codex sandboxed session, run that dispatch command with escalated execution so the scaffold can actually talk to host `systemd --user` and launch Claude outside the sandbox.
+
 For pure execution tasks where Codex does not need to review the result, add:
 
 ```bash
@@ -140,7 +180,9 @@ For pure execution tasks where Codex does not need to review the result, add:
 ```
 
 ### What happens next
-- `cco dispatch` returns immediately with `claude_pid` once the worker starts.
+- `cco dispatch` returns immediately once the worker starts, with either a real `claude_pid` or a host `claude_systemd_unit`.
+- By default the worker is launched through host `systemd-run --user`, so it does not inherit the current Codex sandbox's blocked localhost / network namespace.
+- If Claude cannot reach its configured API base, cannot talk to host `systemd --user`, or exits immediately during startup, `cco dispatch` now fails fast instead of leaving a fake `running` job behind.
 - Once `cco dispatch` reports `claude_started: true`, Codex should stop and should not poll job files, `/tmp`, logs, or process state in the same session unless the user explicitly asked for monitoring.
 - Claude runs the worker task.
 - At session end, the hook calls `http://127.0.0.1:8765/claude-session-end`.

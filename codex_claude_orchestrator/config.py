@@ -18,6 +18,7 @@ class OrchestratorConfig:
     hook_url: str = DEFAULT_HOOK_URL
     claude_bin: str = "claude"
     claude_config_dir: Path | None = None
+    claude_launcher: str = "auto"
     claude_skip_permissions: bool = True
     codex_bin: str | None = None
     codex_model: str = "gpt-5.4"
@@ -30,6 +31,7 @@ class OrchestratorConfig:
         hook_url = os.getenv("CCO_HOOK_URL", DEFAULT_HOOK_URL)
         claude_bin = os.getenv("CCO_CLAUDE_BIN", "claude")
         claude_config_dir_raw = os.getenv("CCO_CLAUDE_CONFIG_DIR") or os.getenv("CLAUDE_CONFIG_DIR")
+        claude_launcher = os.getenv("CCO_CLAUDE_LAUNCHER", "auto").strip().lower() or "auto"
         claude_skip_permissions = os.getenv("CCO_CLAUDE_SKIP_PERMISSIONS", "1").lower() not in {"0", "false", "no"}
         codex_bin = os.getenv("CCO_CODEX_BIN") or None
         codex_model = os.getenv("CCO_CODEX_MODEL", "gpt-5.4")
@@ -40,6 +42,7 @@ class OrchestratorConfig:
             hook_url=hook_url,
             claude_bin=claude_bin,
             claude_config_dir=Path(claude_config_dir_raw).resolve() if claude_config_dir_raw else None,
+            claude_launcher=claude_launcher,
             claude_skip_permissions=claude_skip_permissions,
             codex_bin=codex_bin,
             codex_model=codex_model,
