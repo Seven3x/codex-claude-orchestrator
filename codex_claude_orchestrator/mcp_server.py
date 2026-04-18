@@ -28,12 +28,14 @@ def _job_status_from_fs(job_dir: Path) -> dict[str, Any]:
     monitor_log_path = job_dir / "cco_monitor.log"
     claude_stdout_path = job_dir / "claude_stdout.log"
     claude_stderr_path = job_dir / "claude_stderr.log"
+    claude_output_path = job_dir / "claude_output.log"
 
     meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else None
     worker_result = json.loads(worker_result_path.read_text(encoding="utf-8")) if worker_result_path.exists() else None
     monitor_log = monitor_log_path.read_text(encoding="utf-8", errors="replace") if monitor_log_path.exists() else ""
     stdout_tail = claude_stdout_path.read_text(encoding="utf-8", errors="replace") if claude_stdout_path.exists() else ""
     stderr_tail = claude_stderr_path.read_text(encoding="utf-8", errors="replace") if claude_stderr_path.exists() else ""
+    output_tail = claude_output_path.read_text(encoding="utf-8", errors="replace") if claude_output_path.exists() else ""
 
     return {
         "ok": meta is not None,
@@ -41,6 +43,7 @@ def _job_status_from_fs(job_dir: Path) -> dict[str, Any]:
         "meta": meta,
         "worker_result": worker_result,
         "monitor_log_tail": "\n".join(monitor_log.strip().splitlines()[-20:]) if monitor_log else "",
+        "claude_output_tail": "\n".join(output_tail.strip().splitlines()[-50:]) if output_tail else "",
         "claude_stdout_tail": "\n".join(stdout_tail.strip().splitlines()[-20:]) if stdout_tail else "",
         "claude_stderr_tail": "\n".join(stderr_tail.strip().splitlines()[-20:]) if stderr_tail else "",
     }

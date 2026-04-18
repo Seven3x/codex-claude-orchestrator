@@ -7,8 +7,10 @@ import shlex
 import shutil
 import socket
 import subprocess
+import threading
 import time
 from dataclasses import dataclass
+from io import TextIOBase
 from urllib.parse import urlparse
 from pathlib import Path
 
@@ -175,6 +177,18 @@ def _build_claude_cmd(config: OrchestratorConfig, record: JobRecord, prompt: str
     return cmd
 
 
+def _stream_to_logs(stream: TextIOBase, sinks: list[TextIOBase]) -> None:
+    try:
+        for chunk in iter(stream.readline, ""):
+            if not chunk:
+                break
+            for sink in sinks:
+                sink.write(chunk)
+                sink.flush()
+    finally:
+        stream.close()
+
+
 def _sanitize_unit_name(job_id: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9_.-]+", "-", job_id).strip("-")
     if not safe:
@@ -219,25 +233,44 @@ def _launch_via_subprocess(
     cmd = _build_claude_cmd(config, record, prompt)
     stdout_path = Path(record.claude_stdout_path)
     stderr_path = Path(record.claude_stderr_path)
+    output_path = Path(record.claude_output_path)
     stdout_path.parent.mkdir(parents=True, exist_ok=True)
     stderr_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with stdout_path.open("ab") as stdout_file, stderr_path.open("ab") as stderr_file:
+    with stdout_path.open("a", encoding="utf-8") as stdout_file, \
+        stderr_path.open("a", encoding="utf-8") as stderr_file, \
+        output_path.open("a", encoding="utf-8") as output_file:
         proc = subprocess.Popen(
             cmd,
             cwd=str(config.repo_root),
             env=env,
             text=True,
             stdin=subprocess.DEVNULL,
-            stdout=stdout_file,
-            stderr=stderr_file,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=1,
             start_new_session=True,
         )
+        stdout_thread = threading.Thread(
+            target=_stream_to_logs,
+            args=(proc.stdout, [stdout_file, output_file]),
+            daemon=True,
+        )
+        stderr_thread = threading.Thread(
+            target=_stream_to_logs,
+            args=(proc.stderr, [stderr_file, output_file]),
+            daemon=True,
+        )
+        stdout_thread.start()
+        stderr_thread.start()
         time.sleep(0.75)
         returncode = proc.poll()
         if returncode is not None:
+            stdout_thread.join(timeout=1)
+            stderr_thread.join(timeout=1)
             stderr_excerpt = _read_log_excerpt(stderr_path)
-            stdout_excerpt = _read_log_excerpt(stdout_path)
+            stdout_excerpt = _read_log_excerpt(output_path)
             details = stderr_excerpt or stdout_excerpt or "no worker output captured"
             raise ClaudeLaunchError(
                 f"Claude worker exited immediately with code {returncode}: {details}"
@@ -276,14 +309,17 @@ def _launch_via_systemd(
 ) -> ClaudeLaunchResult:
     stdout_path = Path(record.claude_stdout_path)
     stderr_path = Path(record.claude_stderr_path)
+    output_path = Path(record.claude_output_path)
     stdout_path.parent.mkdir(parents=True, exist_ok=True)
     stderr_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     unit_name = _sanitize_unit_name(record.job_id)
     claude_cmd = _build_claude_cmd(config, record, prompt)
     shell_cmd = (
         f"exec {shlex.join(claude_cmd)}"
-        f" >>{shlex.quote(str(stdout_path))} 2>>{shlex.quote(str(stderr_path))}"
+        f" > >(tee -a {shlex.quote(str(stdout_path))} {shlex.quote(str(output_path))})"
+        f" 2> >(tee -a {shlex.quote(str(stderr_path))} {shlex.quote(str(output_path))} >&2)"
     )
     systemd_cmd = [
         "systemd-run",

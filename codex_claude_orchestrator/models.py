@@ -23,6 +23,7 @@ class JobRecord:
     worker_result_path: str = ""
     claude_stdout_path: str = ""
     claude_stderr_path: str = ""
+    claude_output_path: str = ""
     claude_runtime_dir: str = ""
     monitor_log_path: str = ""
     codex_resume_prompt_path: str = ""

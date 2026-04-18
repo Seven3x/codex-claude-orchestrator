@@ -49,6 +49,7 @@ def dispatch_job(
     result_path = job_dir / "worker_result.json"
     claude_stdout_path = job_dir / "claude_stdout.log"
     claude_stderr_path = job_dir / "claude_stderr.log"
+    claude_output_path = job_dir / "claude_output.log"
     claude_runtime_dir = config.runtime_root / job_id
     monitor_log_path = job_dir / "cco_monitor.log"
     prompt_path = job_dir / "worker_prompt.txt"
@@ -84,6 +85,7 @@ def dispatch_job(
         worker_result_path=str(result_path),
         claude_stdout_path=str(claude_stdout_path),
         claude_stderr_path=str(claude_stderr_path),
+        claude_output_path=str(claude_output_path),
         claude_runtime_dir=str(claude_runtime_dir),
         monitor_log_path=str(monitor_log_path),
         codex_resume_prompt_path=str(resume_prompt_path),
