@@ -105,6 +105,38 @@ cco-mcp
 ./scripts/cco-base server --host 127.0.0.1 --port 8765
 ```
 
+### 安装固定的 user service
+
+不要再反复用 `systemd-run --user` 起很多临时 `cco-*` 服务。
+仓库里现在提供了一个安装脚本，会直接生成并启动固定的 `cco.service`：
+
+```bash
+bash ./scripts/install-cco-service
+```
+
+默认会创建：
+
+- `~/.config/systemd/user/cco.service`
+- 监听 `127.0.0.1`
+- 端口 `8765`
+
+如果你想改名字或端口，可以先设置：
+
+```bash
+export CCO_SERVICE_NAME=cco
+export CCO_SERVICE_HOST=127.0.0.1
+export CCO_SERVICE_PORT=8765
+bash ./scripts/install-cco-service
+```
+
+常用命令：
+
+```bash
+systemctl --user status cco.service
+systemctl --user restart cco.service
+curl -s http://127.0.0.1:8765/health
+```
+
 服务提供三个接口：
 
 - `GET /health`

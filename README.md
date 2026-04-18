@@ -132,6 +132,38 @@ The important detail is that the target repository should also contain `scripts/
 ./scripts/cco-base server --host 127.0.0.1 --port 8765
 ```
 
+### Install one fixed user service
+
+Avoid launching many transient `cco-*` units with `systemd-run --user`.
+This repo now ships a helper that writes one stable user service and starts it:
+
+```bash
+bash ./scripts/install-cco-service
+```
+
+By default it creates:
+
+- `~/.config/systemd/user/cco.service`
+- host `127.0.0.1`
+- port `8765`
+
+You can override these before installing:
+
+```bash
+export CCO_SERVICE_NAME=cco
+export CCO_SERVICE_HOST=127.0.0.1
+export CCO_SERVICE_PORT=8765
+bash ./scripts/install-cco-service
+```
+
+Useful commands afterwards:
+
+```bash
+systemctl --user status cco.service
+systemctl --user restart cco.service
+curl -s http://127.0.0.1:8765/health
+```
+
 ### Dispatch through the host service
 ```bash
 curl -s -X POST http://127.0.0.1:8765/dispatch \
